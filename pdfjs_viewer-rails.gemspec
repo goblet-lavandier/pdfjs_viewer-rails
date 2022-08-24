@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.version     = PdfjsViewer::Rails::VERSION
   s.authors     = ["Yves Senn"]
   s.email       = ["yves.senn@gmail.com"]
-  s.homepage    = "https://github.com/senny/pdfjs_viewer-rails"
+  s.homepage    = "https://github.com/goblet-lavandier/pdfjs_viewer-rails"
   s.summary     = "PDF.js viewer packaged as a Rails engine."
   s.description = "Packages the viewer distributed with PDF.js and makes it available in two styles (full, minimal)."
   s.license     = "MIT"
