@@ -1,35 +1,157 @@
-# PdfjsGolav
+# pdfjs_viewer-rails
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/pdfjs_golav`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+[![Build Status](https://travis-ci.org/senny/pdfjs_viewer-rails.svg?branch=master)](https://travis-ci.org/senny/pdfjs_viewer-rails)
 
 ## Installation
 
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'pdfjs_golav'
+gem 'pdfjs_viewer-rails'
 ```
 
-And then execute:
+*Note: pdfjs_viewer-rails is still in early development. Please report if you encounter any issues along the way.*
 
-    $ bundle install
+## Viewer Styles
 
-Or install it yourself as:
+This gem ships with three viewer styles:
 
-    $ gem install pdfjs_golav
+**full**
+
+<p align="center">
+  <img
+  src="https://raw.githubusercontent.com/senny/pdfjs_viewer-rails/master/doc/files/viewer_full.png"
+  alt="full style"/>
+</p>
+
+**reduced**
+
+<p align="center">
+  <img
+  src="https://raw.githubusercontent.com/senny/pdfjs_viewer-rails/master/doc/files/viewer_reduced.png"
+  alt="reduced style"/>
+</p>
+
+**minimal**
+
+<p align="center">
+  <img
+  src="https://raw.githubusercontent.com/senny/pdfjs_viewer-rails/master/doc/files/viewer_minimal.png"
+  alt="minimal style"/>
+</p>
 
 ## Usage
 
-TODO: Write usage instructions here
+### Using the mountable Engine
+
+The mountable engine makes it extremely simple to integrate the PDF.js viewer
+into your application:
+
+*config/routes.rb*
+```ruby
+mount PdfjsViewer::Rails::Engine => "/pdfjs", as: 'pdfjs'
+```
+
+Now you can use a link in your templates to open up the viewer:
+
+```erb
+<%= link_to "display using the full viewer", pdfjs.full_path(file: "/sample.pdf") %>
+<%= link_to "display using the minimal viewer", pdfjs.minimal_path(file: "/sample.pdf") %>
+```
+
+### Using the helper
+
+If your integration scenario is more complex you may want to consider using the
+`pdfjs_viewer` helper. This allows you to embed the viewer into a container like
+an iframe.
+
+```erb
+<%= pdfjs_viewer pdf_url: "/sample.pdf", style: :full %>
+<%= pdfjs_viewer pdf_url: "/sample.pdf", style: :minimal %>
+```
+
+NOTE: The helper will render a full HTML document and should not be used in a layout.
+
+### Verbosity of PDF.js
+
+The verbosity of PDF.js can be set with:
+
+```
+$ export PDFJS_VIEWER_VERBOSITY=warnings
+```
+
+Verbosity levels:
+
+* errors (default)
+* warnings
+* infos
+
+### Customizing the viewer
+
+If you're not happy with the 3 different styles with which pdfjs_viewer-rails is shipped, you can make your own adjustments by creating a file in `app/views/pdfjs_viewer/viewer/_extra_head.html.erb`. This file will be appended to the viewer's `<head>` tag.
+
+So for example, if you'd like to hide the print icon:
+
+```erb
+<!-- app/views/pdfjs_viewer/viewer/_extra_head.html.erb -->
+
+<style>
+  #print { display: none; }
+</style>
+```
+
+NOTE: You can use the parameters you passed into `pdfjs_viewer` (if you're using the helper):
+
+```erb
+<!-- Somewhere in a view in your project -->
+<%= pdfjs_viewer style: "reduced", something: "sick!" %>
+```
+
+and then access them:
+
+```erb
+<!-- app/views/pdfjs_viewer/viewer/_extra_head.html.erb -->
+
+<%= tag.meta name: "something", content: something %>
+```
+
+### Setting up CORS
+
+If you plan to load PDFs from that are hosted on another domain from the
+PDF.js viewer, you may need to set up a Cross-Origin Resource Sharing (CORS)
+Policy to allow PDF.js to read PDFs from your domain. If you're serving PDFs
+straight from Amazon S3 (e.g. `bucket.s3-us-west-1.amazonaws.com`), you will
+need to add a CORS policy to the S3 bucket. This CORS configuration has been
+tested on S3:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<CORSConfiguration xmlns="http://s3.amazonaws.com/doc/2006-03-01">
+    <CORSRule>
+        <AllowedOrigin>*</AllowedOrigin>
+        <AllowedMethod>GET</AllowedMethod>
+        <AllowedMethod>HEAD</AllowedMethod>
+        <MaxAgeSeconds>3000</MaxAgeSeconds>
+        <AllowedHeader>Range</AllowedHeader>
+        <AllowedHeader>Authorization</AllowedHeader>
+        <ExposeHeader>Accept-Ranges</ExposeHeader>
+        <ExposeHeader>Content-Encoding</ExposeHeader>
+        <ExposeHeader>Content-Length</ExposeHeader>
+        <ExposeHeader>Content-Range</ExposeHeader>
+    </CORSRule>
+</CORSConfiguration>
+```
 
 ## Development
 
-After checking out the repo, run `bin/setup` to install dependencies. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+Tests can be executed with:
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+```
+$ bin/rake
+```
 
-## Contributing
+This will render the sample.pdf using headless chrome and save screenshots into `test/sandbox`.
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/pdfjs_golav.
+## License
+
+pdfjs_viewer-rails is released under the [MIT License](http://www.opensource.org/licenses/MIT).
